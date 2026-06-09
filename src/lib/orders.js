@@ -3,8 +3,19 @@ import path from "node:path";
 
 const dataDirectory = path.join(process.cwd(), "data");
 const storePath = path.join(dataDirectory, "orders.json");
+const memoryStore =
+  globalThis.__ghostmgmOrdersStore ||
+  (globalThis.__ghostmgmOrdersStore = { orders: [] });
+
+function useMemoryStore() {
+  return Boolean(process.env.VERCEL || process.env.NODE_ENV === "production");
+}
 
 async function readStore() {
+  if (useMemoryStore()) {
+    return { orders: [...memoryStore.orders] };
+  }
+
   await mkdir(dataDirectory, { recursive: true });
 
   try {
@@ -22,6 +33,11 @@ async function readStore() {
 }
 
 async function writeStore(store) {
+  if (useMemoryStore()) {
+    memoryStore.orders = Array.isArray(store.orders) ? [...store.orders] : [];
+    return;
+  }
+
   await mkdir(dataDirectory, { recursive: true });
   await writeFile(storePath, `${JSON.stringify(store, null, 2)}\n`, "utf8");
 }
