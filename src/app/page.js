@@ -1,65 +1,234 @@
 import Image from "next/image";
+import {
+  ArrowDown,
+  CalendarDays,
+  Camera,
+  Clock,
+  Globe,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Music2,
+  ShieldCheck,
+} from "lucide-react";
+import EventScene from "./components/EventScene";
+import TicketCheckout from "./components/TicketCheckout";
+import { eventInfo, schedule, ticketTiers } from "@/lib/event";
+
+const eventDetails = [
+  {
+    icon: CalendarDays,
+    label: "Date",
+    value: eventInfo.dateLabel,
+  },
+  {
+    icon: Clock,
+    label: "Time",
+    value: `${eventInfo.startsAt} - ${eventInfo.endsAt}`,
+  },
+  {
+    icon: MapPin,
+    label: "Venue",
+    value: eventInfo.location,
+  },
+  {
+    icon: Music2,
+    label: "Sound",
+    value: eventInfo.genres.join(" / "),
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="site-shell">
+      <section className="hero-section" aria-labelledby="event-title">
+        <EventScene />
+
+        <nav className="top-nav" aria-label="Main navigation">
+          <a className="brand-lockup" href="#top" aria-label="Ghost MGM home">
+            <Image
+              src="/ghostmgm-logo.png"
+              alt="Ghost MGM Management Team logo"
+              width={56}
+              height={56}
+              priority
+            />
+            <span>Ghost MGM</span>
+          </a>
+          <div className="nav-actions">
+            <a href="#details">Details</a>
+            <a href="#schedule">Schedule</a>
+            <a className="nav-ticket" href="#tickets">
+              <ShieldCheck size={16} />
+              <span>Tickets</span>
+            </a>
+          </div>
+        </nav>
+
+        <div className="hero-grid" id="top">
+          <div className="hero-copy">
+            <p className="eyebrow">{eventInfo.genres.join(" • ")}</p>
+            <h1 id="event-title">{eventInfo.name}</h1>
+            <p className="hero-tagline">{eventInfo.tagline}</p>
+            <div className="hero-meta" aria-label="Event quick information">
+              <span>{eventInfo.dateLabel}</span>
+              <span>{eventInfo.startsAt}</span>
+              <span>{eventInfo.endsAt}</span>
+            </div>
+            <div className="hero-buttons">
+              <a className="primary-link" href="#tickets">
+                <ShieldCheck size={18} />
+                <span>Buy Tickets</span>
+              </a>
+              <a className="ghost-link" href="#details">
+                <ArrowDown size={18} />
+                <span>Event Details</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="poster-stage" aria-label="Event poster">
+            <Image
+              src="/synagogue-event.jpg"
+              alt="SYNAGOGUE event poster"
+              width={1080}
+              height={1349}
+              priority
+            />
+          </div>
+
+          <TicketCheckout />
+        </div>
+      </section>
+
+      <section
+        className="detail-band"
+        id="details"
+        aria-labelledby="details-title"
+      >
+        <div className="section-heading">
+          <p className="eyebrow">Event information</p>
+          <h2 id="details-title">Everything in one place</h2>
+        </div>
+
+        <div className="detail-grid">
+          {eventDetails.map((detail) => {
+            const Icon = detail.icon;
+            return (
+              <article className="detail-card" key={detail.label}>
+                <Icon size={24} />
+                <p>{detail.label}</p>
+                <strong>{detail.value}</strong>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="experience-band" aria-labelledby="experience-title">
+        <div className="experience-copy">
+          <p className="eyebrow">The night</p>
+          <h2 id="experience-title">
+            Pink-lit dark techno energy, built for a twelve-hour run.
+          </h2>
+          <p>
+            SYNAGOGUE moves from late-afternoon AfroTech into deeper spiritual
+            and dark techno textures, with Ghost MGM handling confirmations,
+            venue reveal alerts, and digital entry.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="genre-wall" aria-label="Music genres">
+          {eventInfo.genres.map((genre) => (
+            <span key={genre}>{genre}</span>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section
+        className="schedule-band"
+        id="schedule"
+        aria-labelledby="schedule-title"
+      >
+        <div className="section-heading">
+          <p className="eyebrow">Schedule</p>
+          <h2 id="schedule-title">3:00 PM to 3:00 AM</h2>
+        </div>
+
+        <div className="timeline">
+          {schedule.map((item) => (
+            <article className="timeline-item" key={item.time}>
+              <time>{item.time}</time>
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="passes-band" aria-labelledby="passes-title">
+        <div className="section-heading">
+          <p className="eyebrow">Passes</p>
+          <h2 id="passes-title">Choose your entry</h2>
+        </div>
+
+        <div className="passes-grid">
+          {ticketTiers.map((ticket) => (
+            <article className="pass-card" key={ticket.id}>
+              <h3>{ticket.name}</h3>
+              <p>{ticket.description}</p>
+              <ul>
+                {ticket.perks.map((perk) => (
+                  <li key={perk}>
+                    <ShieldCheck size={15} />
+                    <span>{perk}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="#tickets">Book {ticket.name}</a>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <footer className="site-footer">
+        <Image
+          src="/ghostmgm-logo.png"
+          alt="Ghost MGM Management Team logo"
+          width={96}
+          height={96}
+        />
+        <div className="footer-details">
+          <p>Organizer: Baibhav Bhowmik, rishi Dudheria, Bigyat Deb</p>
+          <a href="mailto:gilgamesh@ghostmgm.xyz">
+            <Mail size={16} />
+            <span>gilgamesh@ghostmgm.xyz</span>
+          </a>
+          <a
+            href="https://www.instagram.com/ghostmgm_"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Camera size={16} />
+            <span>@ghostmgm_</span>
+          </a>
+          <a href="https://wa.me/917429401586" target="_blank" rel="noreferrer">
+            <MessageCircle size={16} />
+            <span>+91 7429401586</span>
+          </a>
+          <p>
+            <MapPin size={16} />
+            <span>Bylane 2, Rehabari, Guwahati 781008</span>
+          </p>
+          <p>
+            <Globe size={16} />
+            <span>Website created and managed by Abhikraj Dutta Choudhury</span>
+          </p>
+          <p>© 2026 ghostmgm, Licensed under the AGPL License.</p>
+        </div>
+      </footer>
+    </main>
   );
 }

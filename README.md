@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# SYNAGOGUE Event Site
 
-## Getting Started
+Dark/pink 3D event website for SYNAGOGUE by Ghost MGM, with Razorpay checkout,
+server-side payment signature verification, QR ticket email delivery, and SMS
+delivery.
 
-First, run the development server:
+## Run Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+When Razorpay keys are not configured, the checkout runs in local demo mode so
+ticket issuing, email status, and text status can still be tested.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment
 
-## Learn More
+Copy `.env.example` to `.env.local` and fill the values:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_FROM_NUMBER=
+```
 
-## Deploy on Vercel
+Razorpay payment flow:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. `/api/create-order` creates a Razorpay order on the server.
+2. Razorpay Checkout returns the payment id, order id, and signature.
+3. `/api/verify-payment` verifies the HMAC signature before issuing tickets.
+4. Confirmed tickets are emailed with a QR code and sent by SMS when providers are configured.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The local order store is created at `data/orders.json`. For production, replace
+the file-backed store in `src/lib/orders.js` with a database.
