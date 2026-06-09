@@ -39,7 +39,8 @@ export default function TicketCheckout() {
   const [result, setResult] = useState(null);
 
   const selectedTicket = useMemo(
-    () => ticketTiers.find((ticket) => ticket.id === ticketId) || ticketTiers[0],
+    () =>
+      ticketTiers.find((ticket) => ticket.id === ticketId) || ticketTiers[0],
     [ticketId],
   );
   const subtotal = selectedTicket.price * quantity;
@@ -61,6 +62,10 @@ export default function TicketCheckout() {
         paymentId: response?.razorpay_payment_id,
         signature: response?.razorpay_signature,
         demo,
+        orderDetails: {
+          ...order,
+          customer,
+        },
       }),
     });
 
@@ -180,7 +185,11 @@ export default function TicketCheckout() {
         <h2>Book SYNAGOGUE</h2>
       </div>
 
-      <div className="ticket-options" role="radiogroup" aria-label="Ticket type">
+      <div
+        className="ticket-options"
+        role="radiogroup"
+        aria-label="Ticket type"
+      >
         {ticketTiers.map((ticket) => (
           <button
             type="button"
@@ -202,7 +211,9 @@ export default function TicketCheckout() {
       <div className="quantity-row">
         <span>
           <strong>Bookings</strong>
-          <small>{entryCount} entry code{entryCount === 1 ? "" : "s"}</small>
+          <small>
+            {entryCount} entry code{entryCount === 1 ? "" : "s"}
+          </small>
         </span>
         <div className="stepper">
           <button
@@ -238,7 +249,10 @@ export default function TicketCheckout() {
           />
         </label>
         <label>
-          <span>Email ID (Double-check!! tickets will be delivered straight to your inbox)</span>
+          <span>
+            Email ID (Double-check!! tickets will be delivered straight to your
+            inbox)
+          </span>
           <input
             required
             type="email"
@@ -267,19 +281,29 @@ export default function TicketCheckout() {
       </div>
 
       <button className="primary-button" type="submit" disabled={busy}>
-        {busy ? <LoaderCircle className="spin" size={18} /> : <CreditCard size={18} />}
+        {busy ? (
+          <LoaderCircle className="spin" size={18} />
+        ) : (
+          <CreditCard size={18} />
+        )}
         <span>Pay with Razorpay</span>
       </button>
 
       {state === "demo" ? (
-        <button className="secondary-button" type="button" onClick={issueDemoTicket}>
+        <button
+          className="secondary-button"
+          type="button"
+          onClick={issueDemoTicket}
+        >
           <Ticket size={18} />
           <span>Issue Demo Ticket</span>
         </button>
       ) : null}
 
       {message ? (
-        <p className={`checkout-message ${state === "error" ? "is-error" : ""}`}>
+        <p
+          className={`checkout-message ${state === "error" ? "is-error" : ""}`}
+        >
           {state === "success" ? <CheckCircle2 size={16} /> : null}
           {state === "error" ? <AlertCircle size={16} /> : null}
           <span>{message}</span>
@@ -309,7 +333,12 @@ export default function TicketCheckout() {
                   href={result.notifications.email.testUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ textDecoration: "underline", marginLeft: "6px", color: "var(--pink-soft)", fontWeight: "bold" }}
+                  style={{
+                    textDecoration: "underline",
+                    marginLeft: "6px",
+                    color: "var(--pink-soft)",
+                    fontWeight: "bold",
+                  }}
                 >
                   (View sent email)
                 </a>

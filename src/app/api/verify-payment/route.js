@@ -16,14 +16,34 @@ function secureCompare(left, right) {
   return crypto.timingSafeEqual(leftBuffer, rightBuffer);
 }
 
+function normalizeOrder(order) {
+  const resolvedTicket = order?.ticket || {};
+
+  return {
+    ...order,
+    id: order?.id || order?.orderId || "",
+    orderId: order?.orderId || order?.id || "",
+    quantity: Number(order?.quantity || resolvedTicket?.quantity || 1),
+    entries: Number(order?.entries || resolvedTicket?.entries || 1),
+    ticketName:
+      order?.ticketName ||
+      resolvedTicket?.name ||
+      order?.ticket?.ticketName ||
+      "Ticket",
+    customer: order?.customer || {},
+    amount: Number(order?.amount || 0),
+  };
+}
+
 function makeTickets(order) {
-  const ticketCount = order.quantity * (order.entries || 1);
+  const normalizedOrder = normalizeOrder(order);
+  const ticketCount = normalizedOrder.quantity * (normalizedOrder.entries || 1);
 
   return Array.from({ length: ticketCount }, (_, index) => ({
     code: `SYN-${crypto.randomBytes(3).toString("hex").toUpperCase()}-${String(index + 1).padStart(2, "0")}`,
-    holder: order.customer.name,
+    holder: normalizedOrder.customer?.name || "Guest",
     event: eventInfo.name,
-    pass: order.ticketName,
+    pass: normalizedOrder.ticketName,
   }));
 }
 
@@ -33,13 +53,14 @@ export async function POST(request) {
     const orderId = String(body.orderId || body.razorpay_order_id || "");
     const paymentId = String(body.paymentId || body.razorpay_payment_id || "");
     const signature = String(body.signature || body.razorpay_signature || "");
-    const order = await findOrder(orderId);
+    const persistedOrder = await findOrder(orderId);
+    const order = normalizeOrder(persistedOrder || body.orderDetails || {});
 
-    if (!order) {
+    if (!order?.id) {
       return Response.json({ error: "Order was not found." }, { status: 404 });
     }
 
-    if (order.status === "confirmed") {
+    if (persistedOrder?.status === "confirmed") {
       return Response.json({
         success: true,
         tickets: order.tickets,
@@ -50,7 +71,10 @@ export async function POST(request) {
 
     if (order.mode === "razorpay") {
       if (!process.env.RAZORPAY_KEY_SECRET) {
-        return Response.json({ error: "Razorpay secret is not configured." }, { status: 500 });
+        return Response.json(
+          { error: "Razorpay secret is not configured." },
+          { status: 500 },
+        );
       }
 
       const expectedSignature = crypto
@@ -58,11 +82,21 @@ export async function POST(request) {
         .update(`${order.id}|${paymentId}`)
         .digest("hex");
 
-      if (!paymentId || !signature || !secureCompare(expectedSignature, signature)) {
-        return Response.json({ error: "Payment signature verification failed." }, { status: 400 });
+      if (
+        !paymentId ||
+        !signature ||
+        !secureCompare(expectedSignature, signature)
+      ) {
+        return Response.json(
+          { error: "Payment signature verification failed." },
+          { status: 400 },
+        );
       }
     } else if (!body.demo) {
-      return Response.json({ error: "Demo confirmation was not requested." }, { status: 400 });
+      return Response.json(
+        { error: "Demo confirmation was not requested." },
+        { status: 400 },
+      );
     }
 
     const tickets = makeTickets(order);
@@ -87,6 +121,9 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("verify-payment failed", error);
-    return Response.json({ error: "Could not verify the payment." }, { status: 500 });
+    return Response.json(
+      { error: "Could not verify the payment." },
+      { status: 500 },
+    );
   }
 }
