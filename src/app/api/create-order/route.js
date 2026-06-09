@@ -6,7 +6,9 @@ import { savePendingOrder } from "@/lib/orders";
 export const runtime = "nodejs";
 
 function cleanText(value, fallback = "") {
-  return String(value || fallback).trim().slice(0, 160);
+  return String(value || fallback)
+    .trim()
+    .slice(0, 160);
 }
 
 function isValidEmail(value) {
@@ -29,11 +31,21 @@ export async function POST(request) {
     };
 
     if (!ticket) {
-      return Response.json({ error: "Selected ticket is unavailable." }, { status: 400 });
+      return Response.json(
+        { error: "Selected ticket is unavailable." },
+        { status: 400 },
+      );
     }
 
-    if (!customer.name || !isValidEmail(customer.email) || !isValidPhone(customer.phone)) {
-      return Response.json({ error: "Enter a valid name, email, and phone number." }, { status: 400 });
+    if (
+      !customer.name ||
+      !isValidEmail(customer.email) ||
+      !isValidPhone(customer.phone)
+    ) {
+      return Response.json(
+        { error: "Enter a valid name, email, and phone number." },
+        { status: 400 },
+      );
     }
 
     const keyId = process.env.RAZORPAY_KEY_ID;
@@ -87,6 +99,7 @@ export async function POST(request) {
       amount,
       currency: eventInfo.currency,
       keyId: keyId || "",
+      mode: hasGatewayKeys ? "razorpay" : "demo",
       demo: !hasGatewayKeys,
       ticket: {
         id: ticket.id,
@@ -97,6 +110,9 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("create-order failed", error);
-    return Response.json({ error: "Could not create the payment order." }, { status: 500 });
+    return Response.json(
+      { error: "Could not create the payment order." },
+      { status: 500 },
+    );
   }
 }

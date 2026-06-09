@@ -69,7 +69,10 @@ export async function POST(request) {
       });
     }
 
-    if (order.mode === "razorpay") {
+    const paymentMode =
+      order.mode || (process.env.RAZORPAY_KEY_SECRET ? "razorpay" : "demo");
+
+    if (paymentMode === "razorpay") {
       if (!process.env.RAZORPAY_KEY_SECRET) {
         return Response.json(
           { error: "Razorpay secret is not configured." },
