@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { eventInfo } from "@/lib/event";
-import { confirmOrder, findOrder } from "@/lib/orders";
+import { confirmOrder, findOrder, savePendingOrder } from "@/lib/orders";
 import { sendTicketNotifications } from "@/lib/notifications";
 
 export const runtime = "nodejs";
@@ -54,7 +54,7 @@ export async function POST(request) {
     const paymentId = String(body.paymentId || body.razorpay_payment_id || "");
     const signature = String(body.signature || body.razorpay_signature || "");
     const persistedOrder = await findOrder(orderId);
-    const order = normalizeOrder(persistedOrder || body.orderDetails || {});
+    const order = normalizeOrder(body.orderDetails || persistedOrder || {});
 
     if (!order?.id) {
       return Response.json({ error: "Order was not found." }, { status: 404 });
@@ -111,11 +111,24 @@ export async function POST(request) {
       tickets,
     );
 
-    await confirmOrder(order.id, {
+    const confirmedOrder = await confirmOrder(order.id, {
       paymentId: paymentId || "demo-payment",
       tickets,
       notifications,
     });
+
+    if (!confirmedOrder) {
+      const fallbackOrder = {
+        ...order,
+        paymentId: paymentId || "demo-payment",
+        tickets,
+        notifications,
+        status: "confirmed",
+        confirmedAt: new Date().toISOString(),
+      };
+
+      await savePendingOrder(fallbackOrder);
+    }
 
     return Response.json({
       success: true,
