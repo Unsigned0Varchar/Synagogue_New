@@ -88,6 +88,8 @@ export default function TicketCheckout() {
     setState("creating");
     setMessage("Creating your order...");
 
+    let preventBackNav = null;
+
     try {
       const response = await fetch("/api/create-order", {
         method: "POST",
@@ -117,6 +119,20 @@ export default function TicketCheckout() {
         throw new Error("Razorpay checkout could not load.");
       }
 
+      // Prevent browser popstate/navigation back button from freezing the page on modal close
+      window.history.pushState(null, "", window.location.href);
+      preventBackNav = () => {
+        window.history.pushState(null, "", window.location.href);
+      };
+      window.addEventListener("popstate", preventBackNav);
+
+      const cleanupHistoryListener = () => {
+        if (preventBackNav) {
+          window.removeEventListener("popstate", preventBackNav);
+          preventBackNav = null;
+        }
+      };
+
       const checkout = new window.Razorpay({
         key: order.keyId,
         amount: order.amount,
@@ -138,6 +154,7 @@ export default function TicketCheckout() {
           color: "#ec4899",
         },
         handler: (checkoutResponse) => {
+          cleanupHistoryListener();
           verifyPayment(order, checkoutResponse).catch((error) => {
             setState("error");
             setMessage(error.message);
@@ -145,6 +162,7 @@ export default function TicketCheckout() {
         },
         modal: {
           ondismiss: () => {
+            cleanupHistoryListener();
             setState("idle");
             setMessage("Checkout closed.");
           },
@@ -152,6 +170,7 @@ export default function TicketCheckout() {
       });
 
       checkout.on("payment.failed", (failure) => {
+        cleanupHistoryListener();
         setState("error");
         setMessage(failure.error?.description || "Payment failed.");
       });
@@ -160,6 +179,9 @@ export default function TicketCheckout() {
       setMessage("Opening Razorpay...");
       checkout.open();
     } catch (error) {
+      if (preventBackNav) {
+        window.removeEventListener("popstate", preventBackNav);
+      }
       setState("error");
       setMessage(error.message);
     }

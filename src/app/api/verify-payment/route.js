@@ -103,18 +103,12 @@ export async function POST(request) {
     }
 
     const tickets = makeTickets(order);
-    const notifications = await sendTicketNotifications(
-      {
-        ...order,
-        paymentId: paymentId || "demo-payment",
-      },
-      tickets,
-    );
 
+    // 1. Confirm the order first so the purchase is guaranteed to be saved even if notifications hang/fail
     const confirmedOrder = await confirmOrder(order.id, {
       paymentId: paymentId || "demo-payment",
       tickets,
-      notifications,
+      status: "confirmed",
     });
 
     if (!confirmedOrder) {
@@ -122,12 +116,36 @@ export async function POST(request) {
         ...order,
         paymentId: paymentId || "demo-payment",
         tickets,
-        notifications,
         status: "confirmed",
         confirmedAt: new Date().toISOString(),
       };
 
       await savePendingOrder(fallbackOrder);
+    }
+
+    // 2. Safely attempt to send notifications (with the email/SMS timeouts we configured)
+    let notifications = {
+      email: { status: "skipped", reason: "Notifications failed to send" },
+      sms: { status: "skipped", reason: "Notifications failed to send" },
+    };
+
+    try {
+      notifications = await sendTicketNotifications(
+        {
+          ...order,
+          paymentId: paymentId || "demo-payment",
+        },
+        tickets,
+      );
+
+      // 3. Update the order with notification status if successful
+      await confirmOrder(order.id, {
+        paymentId: paymentId || "demo-payment",
+        tickets,
+        notifications,
+      });
+    } catch (notifError) {
+      console.error("verify-payment notification dispatch failed:", notifError);
     }
 
     return Response.json({
