@@ -222,7 +222,7 @@ export default function TicketCheckout() {
                   padding: "4px",
                 }}
               >
-                <RazorpayPaymentButton buttonId="pl_T0Jucz4a1gduAY" />
+                <RazorpayPaymentButton buttonId="pl_T0MPeUHtjxCHUO" />
               </div>
             )}
             {ticket.id === "executive-pass" && (
@@ -234,7 +234,7 @@ export default function TicketCheckout() {
                   padding: "4px",
                 }}
               >
-                <RazorpayPaymentButton buttonId="pl_T0JVtpF6YX3eqO" />
+                <RazorpayPaymentButton buttonId="pl_T0ML7d5gz0Wire" />
               </div>
             )}
             {ticket.id === "duo-pass" && (
@@ -246,7 +246,7 @@ export default function TicketCheckout() {
                   padding: "4px",
                 }}
               >
-                <RazorpayPaymentButton buttonId="pl_T0JVtpF6YX3eqO" />
+                <RazorpayPaymentButton buttonId="pl_T0MNhMVBZQaRrU" />
               </div>
             )}
           </div>
