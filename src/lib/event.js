@@ -35,7 +35,7 @@ export const ticketTiers = [
     name: "YOKAI- Phase One",
     price: 999,
     entries: 1,
-    description: "Full-event access from 3:00 PM to 3:00 AM.",
+    description: "Full-event access from 3:00 PM onwards.",
     perks: ["General entry", "Digital ticket"],
   },
   {

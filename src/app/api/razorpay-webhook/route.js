@@ -79,11 +79,20 @@ export async function POST(request) {
       
       let ticketTierId = "phase-one";
       
-      if (buttonId === "pl_T0Srlc3goHin8B" || buttonId === "pl_T0ML7d5gz0Wire") {
+      if (
+        buttonId === "pl_T0T9E15goqzuj6" || 
+        buttonId === "pl_T0Srlc3goHin8B" || 
+        buttonId === "pl_T0ML7d5gz0Wire"
+      ) {
         ticketTierId = "executive-pass";
-      } else if (buttonId === "pl_T0Sseoxpq2tCuO" || buttonId === "pl_T0MNhMVBZQaRrU") {
+      } else if (
+        buttonId === "pl_T0T9oUghscEfzB" || 
+        buttonId === "pl_T0Sseoxpq2tCuO" || 
+        buttonId === "pl_T0MNhMVBZQaRrU"
+      ) {
         ticketTierId = "duo-pass";
       } else if (
+        buttonId === "pl_T0T8J4bQCdmZoO" || 
         buttonId === "pl_T0Sqd79mVjoREM" || 
         buttonId === "pl_T0MPeUHtjxCHUO" || 
         buttonId === "pl_T0Jucz4a1gduAY"
