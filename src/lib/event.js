@@ -4,7 +4,7 @@ export const eventInfo = {
   tagline: "Seeking the Ultimate Opium",
   dateLabel: "Saturday, 27 June 2026",
   startsAt: "3:00 PM",
-  endsAt: "3:00 AM",
+  endsAt: "Onwards",
   location: "Venue to be revealed by Host 3 Days before commencement by -  Ghost MGM",
   email: "gilgamesh@ghostmgm.xyz",
   genres: ["Afrotech", "Spiritual", "Techno", "Dark", "Cypher"],
@@ -33,7 +33,7 @@ export const ticketTiers = [
   {
     id: "phase-one",
     name: "YOKAI- Phase One",
-    price: 499,
+    price: 1,
     entries: 1,
     description: "Full-event access from 3:00 PM to 3:00 AM.",
     perks: ["General entry", "Digital ticket"],
@@ -41,7 +41,7 @@ export const ticketTiers = [
   {
     id: "executive-pass",
     name: "ELDER YOKAI",
-    price: 699,
+    price: 1,
     entries: 1,
     description: "Includes One Complimentory Drink.",
     perks: ["EXECUTIVE entry", "1 Complementary Drink"],
@@ -49,7 +49,7 @@ export const ticketTiers = [
   {
     id: "duo-pass",
     name: "YOKAI PACT- Duo",
-    price: 899,
+    price: 1,
     entries: 2,
     description: "Two entries under one booking.",
     perks: ["2 digital tickets", "General Entry"],

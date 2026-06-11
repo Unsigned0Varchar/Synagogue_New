@@ -154,7 +154,7 @@ export default function Home() {
       >
         <div className="section-heading">
           <p className="eyebrow">Schedule</p>
-          <h2 id="schedule-title">3:00 PM to 3:00 AM</h2>
+          <h2 id="schedule-title">3:00 PM gates open</h2>
         </div>
 
         <div className="timeline">
