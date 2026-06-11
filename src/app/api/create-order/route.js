@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import Razorpay from "razorpay";
 import { eventInfo, getTicketTier } from "@/lib/event";
 import { savePendingOrder } from "@/lib/orders";
 
@@ -48,44 +47,16 @@ export async function POST(request) {
       );
     }
 
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    const amount = ticket.price * quantity * 100;
-    const hasGatewayKeys = Boolean(keyId && keySecret);
-    let razorpayOrderId;
-    let receipt;
-
-    if (hasGatewayKeys) {
-      const razorpay = new Razorpay({
-        key_id: keyId,
-        key_secret: keySecret,
-      });
-
-      const order = await razorpay.orders.create({
-        amount,
-        currency: eventInfo.currency,
-        receipt: `syn_${Date.now()}`,
-        notes: {
-          event: eventInfo.name,
-          ticketId: ticket.id,
-          ticketName: ticket.name,
-          quantity: String(quantity),
-          customerEmail: customer.email,
-        },
-      });
-
-      razorpayOrderId = order.id;
-      receipt = order.receipt;
-    } else {
-      razorpayOrderId = `order_demo_${crypto.randomBytes(8).toString("hex")}`;
-      receipt = `syn_demo_${Date.now()}`;
-    }
+    const amountRupees = ticket.price * quantity;
+    const amountPaise = amountRupees * 100;
+    const txnid = `txn_${crypto.randomBytes(8).toString("hex")}`;
+    const receipt = `syn_link_${Date.now()}`;
 
     await savePendingOrder({
-      id: razorpayOrderId,
+      id: txnid,
       receipt,
-      mode: hasGatewayKeys ? "razorpay" : "demo",
-      amount,
+      mode: "link",
+      amount: amountPaise,
       currency: eventInfo.currency,
       ticketId: ticket.id,
       ticketName: ticket.name,
@@ -95,12 +66,11 @@ export async function POST(request) {
     });
 
     return Response.json({
-      orderId: razorpayOrderId,
-      amount,
+      orderId: txnid,
+      amount: amountPaise,
       currency: eventInfo.currency,
-      keyId: keyId || "",
-      mode: hasGatewayKeys ? "razorpay" : "demo",
-      demo: !hasGatewayKeys,
+      mode: "link",
+      paymentLink: process.env.PAYMENT_LINK || "https://example.com/pay-here",
       ticket: {
         id: ticket.id,
         name: ticket.name,

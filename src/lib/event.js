@@ -15,7 +15,7 @@ export const schedule = [
   {
     time: "3:00 PM",
     title: "Doors and daylight session",
-    detail: "Entry opens with thrillinmg Cypher percussion.",
+    detail: "Entry opens with thrilling Cypher percussion.",
   },
   {
     time: "6:00 PM",
@@ -52,7 +52,7 @@ export const ticketTiers = [
     price: 899,
     entries: 2,
     description: "Two entries under one booking.",
-    perks: ["2 digital tickets", "Digital ticket"],
+    perks: ["2 digital tickets", "General Entry"],
   },
   
 ];

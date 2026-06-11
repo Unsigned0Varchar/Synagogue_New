@@ -48,19 +48,59 @@ function makeTickets(order) {
 }
 
 export async function POST(request) {
+  let isFormRedirect = false;
+  let origin = "";
+
   try {
-    const body = await request.json();
-    const orderId = String(body.orderId || body.razorpay_order_id || "");
-    const paymentId = String(body.paymentId || body.razorpay_payment_id || "");
-    const signature = String(body.signature || body.razorpay_signature || "");
-    const persistedOrder = await findOrder(orderId);
-    const order = normalizeOrder(body.orderDetails || persistedOrder || {});
+    origin = new URL(request.url).origin;
+    const contentType = request.headers.get("content-type") || "";
+    let body = {};
+
+    if (
+      contentType.includes("application/x-www-form-urlencoded") ||
+      contentType.includes("multipart/form-data")
+    ) {
+      const formData = await request.formData();
+      formData.forEach((value, key) => {
+        body[key] = value;
+      });
+      isFormRedirect = true;
+    } else {
+      body = await request.json();
+    }
+
+    const txnid = String(body.txnid || body.orderId || "");
+    const paymentId = String(body.mihpayid || body.paymentId || "demo-payment");
+    const status = String(body.status || "");
+    const hash = String(body.hash || "");
+
+    const persistedOrder = await findOrder(txnid);
+
+    // If order not found in memory/file store (e.g. serverless recycling), reconstruct order from body details or fallback
+    const reconstructedOrder = body.orderDetails || {
+      id: txnid,
+      orderId: txnid,
+      amount: Number(body.amount || 0) * 100, // PayU returns amount in Rupees, convert to paise
+      customer: {
+        name: body.firstname || "Guest",
+        email: body.email || "",
+        phone: body.phone || "",
+      },
+    };
+
+    const order = normalizeOrder(persistedOrder || reconstructedOrder);
 
     if (!order?.id) {
+      if (isFormRedirect) {
+        return Response.redirect(`${origin}/?status=error&message=Order not found`, 302);
+      }
       return Response.json({ error: "Order was not found." }, { status: 404 });
     }
 
     if (persistedOrder?.status === "confirmed") {
+      if (isFormRedirect) {
+        return Response.redirect(`${origin}/?status=success&orderId=${order.id}`, 302);
+      }
       return Response.json({
         success: true,
         tickets: order.tickets,
@@ -69,61 +109,30 @@ export async function POST(request) {
       });
     }
 
-    const paymentMode =
-      order.mode || (process.env.RAZORPAY_KEY_SECRET ? "razorpay" : "demo");
-
-    if (paymentMode === "razorpay") {
-      if (!process.env.RAZORPAY_KEY_SECRET) {
-        return Response.json(
-          { error: "Razorpay secret is not configured." },
-          { status: 500 },
-        );
-      }
-
-      const expectedSignature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-        .update(`${order.id}|${paymentId}`)
-        .digest("hex");
-
-      if (
-        !paymentId ||
-        !signature ||
-        !secureCompare(expectedSignature, signature)
-      ) {
-        return Response.json(
-          { error: "Payment signature verification failed." },
-          { status: 400 },
-        );
-      }
-    } else if (!body.demo) {
-      return Response.json(
-        { error: "Demo confirmation was not requested." },
-        { status: 400 },
-      );
-    }
-
+    // For manual 'Pay with Link' flow, no automatic hash verification is required.
     const tickets = makeTickets(order);
 
-    // 1. Confirm the order first so the purchase is guaranteed to be saved even if notifications hang/fail
+    // 1. Confirm the order in the store
     const confirmedOrder = await confirmOrder(order.id, {
-      paymentId: paymentId || "demo-payment",
+      paymentId,
       tickets,
       status: "confirmed",
     });
 
+
+
     if (!confirmedOrder) {
       const fallbackOrder = {
         ...order,
-        paymentId: paymentId || "demo-payment",
+        paymentId,
         tickets,
         status: "confirmed",
         confirmedAt: new Date().toISOString(),
       };
-
       await savePendingOrder(fallbackOrder);
     }
 
-    // 2. Safely attempt to send notifications (with the email/SMS timeouts we configured)
+    // 2. Dispatch notifications (wrapped in a try-catch for fast failover)
     let notifications = {
       email: { status: "skipped", reason: "Notifications failed to send" },
       sms: { status: "skipped", reason: "Notifications failed to send" },
@@ -133,19 +142,23 @@ export async function POST(request) {
       notifications = await sendTicketNotifications(
         {
           ...order,
-          paymentId: paymentId || "demo-payment",
+          paymentId,
         },
         tickets,
       );
 
-      // 3. Update the order with notification status if successful
+      // Save notification status
       await confirmOrder(order.id, {
-        paymentId: paymentId || "demo-payment",
+        paymentId,
         tickets,
         notifications,
       });
     } catch (notifError) {
       console.error("verify-payment notification dispatch failed:", notifError);
+    }
+
+    if (isFormRedirect) {
+      return Response.redirect(`${origin}/?status=success&orderId=${order.id}`, 302);
     }
 
     return Response.json({
@@ -155,6 +168,9 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("verify-payment failed", error);
+    if (isFormRedirect) {
+      return Response.redirect(`${origin}/?status=error&message=Internal server error`, 302);
+    }
     return Response.json(
       { error: "Could not verify the payment." },
       { status: 500 },

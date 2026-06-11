@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -14,19 +14,29 @@ import {
 } from "lucide-react";
 import { eventInfo, formatPrice, ticketTiers } from "@/lib/event";
 
-function getRazorpayScript() {
-  if (document.getElementById("razorpay-checkout")) {
-    return Promise.resolve(true);
-  }
+function RazorpayPaymentButton() {
+  const containerRef = useRef(null);
 
-  return new Promise((resolve) => {
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const form = document.createElement("form");
     const script = document.createElement("script");
-    script.id = "razorpay-checkout";
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
+    script.src = "https://checkout.razorpay.com/v1/payment-button.js";
+    script.setAttribute("data-payment_button_id", "pl_T0Jucz4a1gduAY");
+    script.async = true;
+
+    form.appendChild(script);
+    containerRef.current.appendChild(form);
+
+    return () => {
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
+    };
+  }, []);
+
+  return <div ref={containerRef} className="razorpay-button-container" />;
 }
 
 export default function TicketCheckout() {
@@ -50,6 +60,42 @@ export default function TicketCheckout() {
     setCustomer((current) => ({ ...current, [field]: value }));
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const orderId = params.get("orderId");
+    const messageParam = params.get("message");
+
+    if (status === "success" && orderId) {
+      setState("verifying");
+      setMessage("Confirming your ticket...");
+
+      fetch(`/api/get-order?orderId=${orderId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Could not fetch order details.");
+          return res.json();
+        })
+        .then((data) => {
+          setResult(data);
+          setState("success");
+          setMessage("Tickets issued.");
+
+          // Clean up URL query parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+        })
+        .catch((err) => {
+          setState("error");
+          setMessage(err.message);
+        });
+    } else if (status === "error") {
+      setState("error");
+      setMessage(messageParam || "Payment failed or was cancelled.");
+
+      // Clean up URL query parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const verifyPayment = async (order, response, demo = false) => {
     setState("verifying");
     setMessage("Confirming your ticket...");
@@ -58,9 +104,7 @@ export default function TicketCheckout() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: order.orderId,
-        paymentId: response?.razorpay_payment_id,
-        signature: response?.razorpay_signature,
+        orderId: order.orderId || order.id || "",
         demo,
         orderDetails: {
           ...order,
@@ -88,8 +132,6 @@ export default function TicketCheckout() {
     setState("creating");
     setMessage("Creating your order...");
 
-    let preventBackNav = null;
-
     try {
       const response = await fetch("/api/create-order", {
         method: "POST",
@@ -106,99 +148,33 @@ export default function TicketCheckout() {
         throw new Error(order.error || "Unable to create order.");
       }
 
-      if (order.demo) {
+      if (order.mode === "link") {
         setPendingOrder(order);
-        setState("demo");
-        setMessage("Demo checkout ready.");
+        setState("pending_payment");
+        setMessage("Order created! Please pay using the payment link below, then click confirm.");
         return;
       }
 
-      const scriptReady = await getRazorpayScript();
-
-      if (!scriptReady || !window.Razorpay) {
-        throw new Error("Razorpay checkout could not load.");
-      }
-
-      // Prevent browser popstate/navigation back button from freezing the page on modal close
-      window.history.pushState(null, "", window.location.href);
-      preventBackNav = () => {
-        window.history.pushState(null, "", window.location.href);
-      };
-      window.addEventListener("popstate", preventBackNav);
-
-      const cleanupHistoryListener = () => {
-        if (preventBackNav) {
-          window.removeEventListener("popstate", preventBackNav);
-          preventBackNav = null;
-        }
-      };
-
-      const checkout = new window.Razorpay({
-        key: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        name: eventInfo.organizer,
-        description: `${order.ticket.name} x ${order.quantity}`,
-        image: `${window.location.origin}/ghostmgm-logo.png`,
-        order_id: order.orderId,
-        prefill: {
-          name: customer.name,
-          email: customer.email,
-          contact: customer.phone,
-        },
-        notes: {
-          event: eventInfo.name,
-          ticket: order.ticket.name,
-        },
-        theme: {
-          color: "#ec4899",
-        },
-        handler: (checkoutResponse) => {
-          cleanupHistoryListener();
-          verifyPayment(order, checkoutResponse).catch((error) => {
-            setState("error");
-            setMessage(error.message);
-          });
-        },
-        modal: {
-          ondismiss: () => {
-            cleanupHistoryListener();
-            setState("idle");
-            setMessage("Checkout closed.");
-          },
-        },
-      });
-
-      checkout.on("payment.failed", (failure) => {
-        cleanupHistoryListener();
-        setState("error");
-        setMessage(failure.error?.description || "Payment failed.");
-      });
-
-      setState("paying");
-      setMessage("Opening Razorpay...");
-      checkout.open();
+      throw new Error("Invalid response from checkout backend.");
     } catch (error) {
-      if (preventBackNav) {
-        window.removeEventListener("popstate", preventBackNav);
-      }
       setState("error");
       setMessage(error.message);
     }
   };
 
-  const issueDemoTicket = () => {
+  const confirmManualPayment = () => {
     if (!pendingOrder) {
       return;
     }
 
-    verifyPayment(pendingOrder, null, true).catch((error) => {
+    verifyPayment(pendingOrder, null, false).catch((error) => {
       setState("error");
       setMessage(error.message);
     });
   };
 
-  const busy = ["creating", "paying", "verifying"].includes(state);
+  const busy = ["creating", "verifying"].includes(state);
+  const inputsDisabled = state !== "idle" && state !== "error";
 
   return (
     <form className="checkout-panel" id="tickets" onSubmit={beginCheckout}>
@@ -213,114 +189,47 @@ export default function TicketCheckout() {
         aria-label="Ticket type"
       >
         {ticketTiers.map((ticket) => (
-          <button
-            type="button"
-            className={`ticket-row ${ticket.id === ticketId ? "is-selected" : ""}`}
+          <div
             key={ticket.id}
-            onClick={() => setTicketId(ticket.id)}
-            role="radio"
-            aria-checked={ticket.id === ticketId}
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              width: "100%",
+            }}
           >
-            <span>
-              <strong>{ticket.name}</strong>
-              <small>{ticket.description}</small>
-            </span>
-            <span className="ticket-price">{formatPrice(ticket.price)}</span>
-          </button>
+            <button
+              type="button"
+              className={`ticket-row ${ticket.id === ticketId ? "is-selected" : ""}`}
+              onClick={() => setTicketId(ticket.id)}
+              role="radio"
+              aria-checked={ticket.id === ticketId}
+              disabled={inputsDisabled}
+              style={{ flex: 1 }}
+            >
+              <span>
+                <strong>{ticket.name}</strong>
+                <small>{ticket.description}</small>
+              </span>
+              <span className="ticket-price">{formatPrice(ticket.price)}</span>
+            </button>
+            {ticket.id === "phase-one" && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "4px",
+                }}
+              >
+                <RazorpayPaymentButton />
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
-      <div className="quantity-row">
-        <span>
-          <strong>Bookings</strong>
-          <small>
-            {entryCount} entry code{entryCount === 1 ? "" : "s"}
-          </small>
-        </span>
-        <div className="stepper">
-          <button
-            type="button"
-            aria-label="Decrease ticket quantity"
-            title="Decrease"
-            onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-          >
-            <Minus size={16} />
-          </button>
-          <output>{quantity}</output>
-          <button
-            type="button"
-            aria-label="Increase ticket quantity"
-            title="Increase"
-            onClick={() => setQuantity((value) => Math.min(8, value + 1))}
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-      </div>
 
-      <div className="form-grid">
-        <label>
-          <span>Name</span>
-          <input
-            required
-            type="text"
-            autoComplete="name"
-            value={customer.name}
-            onChange={(event) => updateCustomer("name", event.target.value)}
-            placeholder="Full name"
-          />
-        </label>
-        <label>
-          <span>
-            Email ID (Double-check!! tickets will be delivered straight to your
-            inbox)
-          </span>
-          <input
-            required
-            type="email"
-            autoComplete="email"
-            value={customer.email}
-            onChange={(event) => updateCustomer("email", event.target.value)}
-            placeholder="name@example.com"
-          />
-        </label>
-        <label>
-          <span>Phone</span>
-          <input
-            required
-            type="tel"
-            autoComplete="tel"
-            value={customer.phone}
-            onChange={(event) => updateCustomer("phone", event.target.value)}
-            placeholder="98765 43210"
-          />
-        </label>
-      </div>
-
-      <div className="checkout-total">
-        <span>Total</span>
-        <strong>{formatPrice(subtotal)}</strong>
-      </div>
-
-      <button className="primary-button" type="submit" disabled={busy}>
-        {busy ? (
-          <LoaderCircle className="spin" size={18} />
-        ) : (
-          <CreditCard size={18} />
-        )}
-        <span>Pay with Razorpay</span>
-      </button>
-
-      {state === "demo" ? (
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={issueDemoTicket}
-        >
-          <Ticket size={18} />
-          <span>Issue Demo Ticket</span>
-        </button>
-      ) : null}
 
       {message ? (
         <p
