@@ -74,13 +74,33 @@ export async function POST(request) {
       const name = notes.name || notes.Name || notes.customer_name || "Guest";
       const customer = { name, email, phone };
 
-      // Determine the correct ticket tier based on payment amount
-      const amountRupees = amount / 100;
+      // Determine the correct ticket tier based on payment button ID or payment amount
+      const buttonId = notes.payment_button_id || "";
+      
       let ticketTierId = "phase-one";
-      if (Math.abs(amountRupees - 699) < 10) {
+      
+      if (buttonId === "pl_T0ML7d5gz0Wire") {
         ticketTierId = "executive-pass";
-      } else if (Math.abs(amountRupees - 899) < 10) {
+      } else if (buttonId === "pl_T0MNhMVBZQaRrU") {
         ticketTierId = "duo-pass";
+      } else if (buttonId === "pl_T0MPeUHtjxCHUO" || buttonId === "pl_T0Jucz4a1gduAY") {
+        ticketTierId = "phase-one";
+      } else if (buttonId === "pl_T0JVtpF6YX3eqO") {
+        // Fallback for old shared button ID based on amount
+        const amountRupees = amount / 100;
+        if (Math.abs(amountRupees - 899) < 10) {
+          ticketTierId = "duo-pass";
+        } else {
+          ticketTierId = "executive-pass";
+        }
+      } else {
+        // Fallback to price amount if buttonId is not in notes
+        const amountRupees = amount / 100;
+        if (Math.abs(amountRupees - 699) < 10) {
+          ticketTierId = "executive-pass";
+        } else if (Math.abs(amountRupees - 899) < 10) {
+          ticketTierId = "duo-pass";
+        }
       }
 
       const ticketTier = getTicketTier(ticketTierId) || {
@@ -91,7 +111,12 @@ export async function POST(request) {
       };
 
       // Compute quantity based on payment amount and ticket price
-      const ticketPricePaise = ticketTier.price * 100;
+      let ticketPricePaise = ticketTier.price * 100;
+      // Defensive check: if the ticket config price is set to ₹1 but the customer paid standard amounts (e.g. ₹699),
+      // we match the ticketPricePaise to the amount paid to prevent issuing hundreds of tickets.
+      if (ticketTier.price === 1 && amount > 100) {
+        ticketPricePaise = amount;
+      }
       const quantity = Math.max(1, Math.round(amount / ticketPricePaise));
 
       const orderId = `txn_${paymentId}`;
