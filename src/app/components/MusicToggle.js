@@ -25,7 +25,7 @@ export default function MusicToggle() {
     <div className="music-toggle-container">
       <audio
         ref={audioRef}
-        src="/background-music.mp3"
+        src="/FredAgain_.mp3"
         loop
         preload="auto"
       />
@@ -35,8 +35,7 @@ export default function MusicToggle() {
         aria-label={isPlaying ? "Mute music" : "Play music"}
         title={isPlaying ? "Mute Music" : "Play Music"}
       >
-        {isPlaying ? <Volume2 size={16} /> : <VolumeX size={16} />}
-        <span>{isPlaying ? "MUTE" : "PLAY"}</span>
+        {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
       </button>
     </div>
   );

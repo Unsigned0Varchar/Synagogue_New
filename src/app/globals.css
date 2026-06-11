@@ -839,41 +839,68 @@ img {
 .music-toggle-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(236, 72, 153, 0.08);
-  border: 1px solid var(--line);
-  padding: 8px 16px;
-  border-radius: 20px;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+
+.music-toggle-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .music-toggle-btn:hover {
-  background: rgba(236, 72, 153, 0.16);
   color: #fff;
-  border-color: var(--pink-soft);
-  box-shadow: 0 0 12px rgba(255, 79, 163, 0.3);
+  border-color: rgba(236, 72, 153, 0.4);
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
+  transform: scale(1.05);
+}
+
+.music-toggle-btn:hover::before {
+  opacity: 1;
 }
 
 .music-toggle-btn.is-playing {
-  border-color: var(--pink-strong);
-  color: var(--foreground);
-  background: rgba(255, 79, 163, 0.2);
-  box-shadow: 0 0 16px rgba(255, 79, 163, 0.4);
-  animation: pulse-music 2.5s infinite alternate;
+  border-color: rgba(255, 79, 163, 0.8);
+  color: #fff;
+  background: rgba(255, 79, 163, 0.15);
+  box-shadow: 0 0 20px rgba(255, 79, 163, 0.4);
 }
 
-@keyframes pulse-music {
-  0% {
-    box-shadow: 0 0 4px rgba(255, 79, 163, 0.2);
+.music-toggle-btn.is-playing::before {
+  opacity: 1;
+  background: radial-gradient(circle, rgba(255, 79, 163, 0.25) 0%, transparent 70%);
+}
+
+.music-toggle-btn.is-playing svg {
+  animation: pulse-icon 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-icon {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(255, 79, 163, 0.4));
   }
-  100% {
-    box-shadow: 0 0 20px rgba(255, 79, 163, 0.6);
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(255, 79, 163, 0.8));
   }
 }
 
