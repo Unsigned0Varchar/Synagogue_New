@@ -33,7 +33,7 @@ export const ticketTiers = [
   {
     id: "phase-one",
     name: "YOKAI- Phase One",
-    price: 1,
+    price: 999,
     entries: 1,
     description: "Full-event access from 3:00 PM to 3:00 AM.",
     perks: ["General entry", "Digital ticket"],
@@ -41,18 +41,18 @@ export const ticketTiers = [
   {
     id: "executive-pass",
     name: "ELDER YOKAI",
-    price: 1,
+    price: 1499,
     entries: 1,
-    description: "Includes One Complimentory Drink.",
-    perks: ["EXECUTIVE entry", "1 Complementary Drink"],
+    description: "Full-event access and 500/- off on F&B.",
+    perks: ["EXECUTIVE entry", "500 cover"],
   },
   {
     id: "duo-pass",
     name: "YOKAI PACT- Duo",
-    price: 1,
+    price: 2799,
     entries: 2,
-    description: "Two entries under one booking.",
-    perks: ["2 digital tickets", "General Entry"],
+    description: "Two entries and 1000/- off on F&B.",
+    perks: ["2 digital tickets", "1000 cover"],
   },
   
 ];

@@ -79,16 +79,20 @@ export async function POST(request) {
       
       let ticketTierId = "phase-one";
       
-      if (buttonId === "pl_T0ML7d5gz0Wire") {
+      if (buttonId === "pl_T0Srlc3goHin8B" || buttonId === "pl_T0ML7d5gz0Wire") {
         ticketTierId = "executive-pass";
-      } else if (buttonId === "pl_T0MNhMVBZQaRrU") {
+      } else if (buttonId === "pl_T0Sseoxpq2tCuO" || buttonId === "pl_T0MNhMVBZQaRrU") {
         ticketTierId = "duo-pass";
-      } else if (buttonId === "pl_T0MPeUHtjxCHUO" || buttonId === "pl_T0Jucz4a1gduAY") {
+      } else if (
+        buttonId === "pl_T0Sqd79mVjoREM" || 
+        buttonId === "pl_T0MPeUHtjxCHUO" || 
+        buttonId === "pl_T0Jucz4a1gduAY"
+      ) {
         ticketTierId = "phase-one";
       } else if (buttonId === "pl_T0JVtpF6YX3eqO") {
         // Fallback for old shared button ID based on amount
         const amountRupees = amount / 100;
-        if (Math.abs(amountRupees - 899) < 10) {
+        if (Math.abs(amountRupees - 899) < 10 || Math.abs(amountRupees - 2799) < 10) {
           ticketTierId = "duo-pass";
         } else {
           ticketTierId = "executive-pass";
@@ -96,9 +100,9 @@ export async function POST(request) {
       } else {
         // Fallback to price amount if buttonId is not in notes
         const amountRupees = amount / 100;
-        if (Math.abs(amountRupees - 699) < 10) {
+        if (Math.abs(amountRupees - 1499) < 10 || Math.abs(amountRupees - 699) < 10) {
           ticketTierId = "executive-pass";
-        } else if (Math.abs(amountRupees - 899) < 10) {
+        } else if (Math.abs(amountRupees - 2799) < 10 || Math.abs(amountRupees - 899) < 10) {
           ticketTierId = "duo-pass";
         }
       }
