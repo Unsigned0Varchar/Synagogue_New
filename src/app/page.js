@@ -47,7 +47,7 @@ export default function Home() {
         <nav className="top-nav" aria-label="Main navigation">
           <a className="brand-lockup" href="#top" aria-label="Ghost MGM home">
             <Image
-              src="/ghostmgm-logo.png"
+              src="/ghostmgm-logo-new.jpg"
               alt="Ghost MGM Management Team logo"
               width={56}
               height={56}
@@ -195,7 +195,7 @@ export default function Home() {
 
       <footer className="site-footer">
         <Image
-          src="/ghostmgm-logo.png"
+          src="/ghostmgm-logo-new.jpg"
           alt="Ghost MGM Management Team logo"
           width={96}
           height={96}

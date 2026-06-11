@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { eventInfo, formatPrice, ticketTiers } from "@/lib/event";
 
-function RazorpayPaymentButton() {
+function RazorpayPaymentButton({ buttonId }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ function RazorpayPaymentButton() {
     const form = document.createElement("form");
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/payment-button.js";
-    script.setAttribute("data-payment_button_id", "pl_T0Jucz4a1gduAY");
+    script.setAttribute("data-payment_button_id", buttonId);
     script.async = true;
 
     form.appendChild(script);
@@ -34,7 +34,7 @@ function RazorpayPaymentButton() {
         containerRef.current.innerHTML = "";
       }
     };
-  }, []);
+  }, [buttonId]);
 
   return <div ref={containerRef} className="razorpay-button-container" />;
 }
@@ -222,7 +222,31 @@ export default function TicketCheckout() {
                   padding: "4px",
                 }}
               >
-                <RazorpayPaymentButton />
+                <RazorpayPaymentButton buttonId="pl_T0Jucz4a1gduAY" />
+              </div>
+            )}
+            {ticket.id === "executive-pass" && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "4px",
+                }}
+              >
+                <RazorpayPaymentButton buttonId="pl_T0JVtpF6YX3eqO" />
+              </div>
+            )}
+            {ticket.id === "duo-pass" && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "4px",
+                }}
+              >
+                <RazorpayPaymentButton buttonId="pl_T0JVtpF6YX3eqO" />
               </div>
             )}
           </div>

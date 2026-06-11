@@ -74,8 +74,16 @@ export async function POST(request) {
       const name = notes.name || notes.Name || notes.customer_name || "Guest";
       const customer = { name, email, phone };
 
-      // YOKAI- Phase One details
-      const ticketTier = getTicketTier("phase-one") || {
+      // Determine the correct ticket tier based on payment amount
+      const amountRupees = amount / 100;
+      let ticketTierId = "phase-one";
+      if (Math.abs(amountRupees - 699) < 10) {
+        ticketTierId = "executive-pass";
+      } else if (Math.abs(amountRupees - 899) < 10) {
+        ticketTierId = "duo-pass";
+      }
+
+      const ticketTier = getTicketTier(ticketTierId) || {
         id: "phase-one",
         name: "YOKAI- Phase One",
         price: 1,
