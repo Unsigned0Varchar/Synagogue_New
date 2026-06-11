@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import EventScene from "./components/EventScene";
 import TicketCheckout from "./components/TicketCheckout";
+import MusicToggle from "./components/MusicToggle";
 import { eventInfo, schedule, ticketTiers } from "@/lib/event";
 
 const eventDetails = [
@@ -55,6 +56,7 @@ export default function Home() {
             />
             <span>Ghost MGM</span>
           </a>
+          <MusicToggle />
           <div className="nav-actions">
             <a href="#details">Details</a>
             <a href="#schedule">Schedule</a>
