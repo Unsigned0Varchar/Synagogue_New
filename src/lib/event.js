@@ -33,7 +33,7 @@ export const ticketTiers = [
   {
     id: "phase-one",
     name: "YOKAI- Phase One",
-    price: 1,
+    price: 499,
     entries: 1,
     description: "Full-event access from 3:00 PM to 3:00 AM.",
     perks: ["General entry", "Digital ticket"],
