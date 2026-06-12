@@ -179,7 +179,7 @@ export default function TicketCheckout() {
   return (
     <form className="checkout-panel" id="tickets" onSubmit={beginCheckout}>
       <div className="panel-heading">
-        <p className="eyebrow">Tickets</p>
+        <p className="eyebrow">Phase One</p>
         <h2>Book SYNAGOGUE</h2>
       </div>
 
@@ -213,7 +213,7 @@ export default function TicketCheckout() {
               </span>
               <span className="ticket-price">{formatPrice(ticket.price)}</span>
             </button>
-            {ticket.id === "phase-one" && (
+            {ticket.id === "Yokai" && (
               <div
                 style={{
                   display: "flex",

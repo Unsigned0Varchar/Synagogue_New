@@ -31,8 +31,8 @@ export const schedule = [
 
 export const ticketTiers = [
   {
-    id: "phase-one",
-    name: "YOKAI- Phase One",
+    id: "Yokai",
+    name: "YOKAI",
     price: 999,
     entries: 1,
     description: "Full-event access from 3:00 PM onwards.",

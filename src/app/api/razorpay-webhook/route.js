@@ -77,7 +77,7 @@ export async function POST(request) {
       // Determine the correct ticket tier based on payment button ID or payment amount
       const buttonId = notes.payment_button_id || "";
       
-      let ticketTierId = "phase-one";
+      let ticketTierId = "Yokai";
       
       if (
         buttonId === "pl_T0T9E15goqzuj6" || 
@@ -97,7 +97,7 @@ export async function POST(request) {
         buttonId === "pl_T0MPeUHtjxCHUO" || 
         buttonId === "pl_T0Jucz4a1gduAY"
       ) {
-        ticketTierId = "phase-one";
+        ticketTierId = "Yokai";
       } else if (buttonId === "pl_T0JVtpF6YX3eqO") {
         // Fallback for old shared button ID based on amount
         const amountRupees = amount / 100;
@@ -117,9 +117,9 @@ export async function POST(request) {
       }
 
       const ticketTier = getTicketTier(ticketTierId) || {
-        id: "phase-one",
-        name: "YOKAI- Phase One",
-        price: 1,
+        id: "Yokai",
+        name: "YOKAI",
+        price: 999,
         entries: 1,
       };
 
