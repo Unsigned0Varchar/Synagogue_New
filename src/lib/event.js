@@ -5,7 +5,7 @@ export const eventInfo = {
   dateLabel: "Saturday, 27 June 2026",
   startsAt: "3:00 PM",
   endsAt: "Onwards",
-  location: "Venue to be revealed by Host 3 Days before commencement.",
+  location: "Vaanya Retreat, Garoghuli Rd, AHOM GAON, Guwahati, Assam, 781040.",
   email: "gilgamesh@ghostmgm.xyz",
   genres: ["Afrotech", "Spiritual", "Techno", "Dark", "Cypher"],
   currency: "INR",

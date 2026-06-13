@@ -203,7 +203,7 @@ export default function Home() {
           height={96}
         />
         <div className="footer-details">
-          <p>Organizer: Baibhav Bhowmik, rishi Dudheria, Bigyat Deb</p>
+          
           <a href="mailto:gilgamesh@ghostmgm.xyz">
             <Mail size={16} />
             <span>gilgamesh@ghostmgm.xyz</span>
