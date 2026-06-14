@@ -35,7 +35,7 @@ export const ticketTiers = [
     name: "YOKAI",
     price: 999,
     entries: 1,
-    description: "Full-event access from 3:00 PM onwards.",
+    description: "Full-event access from 3:00 PM onwards. One Complimentary Drink.",
     perks: ["General entry", "Digital ticket"],
   },
   {
@@ -51,7 +51,7 @@ export const ticketTiers = [
     name: "YOKAI PACT- Duo",
     price: 2799,
     entries: 2,
-    description: "Two entries and 1000/- off on F&B.",
+    description: "Two entries and 1000/- off on F&B. Two Complimentary Drinks.",
     perks: ["2 digital tickets", "1000 cover"],
   },
   
